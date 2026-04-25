@@ -8,138 +8,99 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Inventory inventory = new Inventory();
+        boolean running = true;
 
-        int option = -1;
-
-        while (option != 0) {
+        while (running) {
             printMenu();
+            String choice = scanner.nextLine();
 
-            if (!scanner.hasNextInt()) {
-                System.out.println("Ungültige Eingabe. Bitte eine Zahl eingeben.");
-                scanner.nextLine();
-                continue;
-            }
-
-            option = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (option) {
-                case 1:
-                    createArticle(scanner, inventory);
+            switch (choice) {
+                case "1":
+                    createStandardArticle(scanner, inventory);
                     break;
-
-                case 2:
+                case "2":
+                    createPokemonCard(scanner, inventory);
+                    break;
+                case "3":
                     showAllArticles(inventory);
                     break;
-
-                case 3:
+                case "4":
+                    showAllPokemonCards(inventory);
+                    break;
+                case "5":
                     searchArticleByID(scanner, inventory);
                     break;
-
-                case 4:
+                case "6":
                     searchArticleByName(scanner, inventory);
                     break;
-
-                case 5:
+                case "7":
                     bookIncomingStock(scanner, inventory);
                     break;
-
-                case 6:
+                case "8":
                     bookOutgoingStock(scanner, inventory);
                     break;
-
-                case 7:
+                case "9":
                     showLowStockItems(inventory);
                     break;
-
-                case 8:
+                case "10":
                     deleteArticle(scanner, inventory);
                     break;
-
-                case 9:
+                case "11":
                     saveArticles(scanner, inventory);
                     break;
-
-                case 10:
+                case "12":
                     loadArticles(scanner, inventory);
                     break;
-
-                case 11:
+                case "13":
                     showAllMovements(inventory);
                     break;
-
-                case 12:
+                case "14":
                     showMovementsByArticle(scanner, inventory);
                     break;
-
-                case 13:
+                case "15":
                     saveMovements(scanner, inventory);
                     break;
-
-                case 14:
+                case "16":
                     loadMovements(scanner, inventory);
                     break;
-
-                case 15:
+                case "17":
                     showStatistics(inventory);
                     break;
-
-                case 0:
+                case "0":
+                    running = false;
                     System.out.println("Programm beendet.");
                     break;
-
                 default:
-                    System.out.println("Ungültige Option. Bitte erneut wählen.");
+                    System.out.println("Ungültige Auswahl. Bitte erneut versuchen.");
             }
+
+            System.out.println();
         }
 
         scanner.close();
     }
 
     private static void printMenu() {
-        System.out.println();
-        System.out.println("=== Lagerverwaltung ===");
-        System.out.println();
-        System.out.println("1  - Artikel anlegen");
-        System.out.println("2  - Alle Artikel anzeigen");
-        System.out.println("3  - Artikel nach Nummer suchen");
-        System.out.println("4  - Artikel nach Name suchen");
-        System.out.println("5  - Zugang buchen");
-        System.out.println("6  - Abgang buchen");
-        System.out.println("7  - Kritische Bestände anzeigen");
-        System.out.println("8  - Artikel löschen");
-        System.out.println("9  - Artikel in Datei speichern");
-        System.out.println("10 - Artikel aus Datei laden");
-        System.out.println("11 - Gesamte Buchungshistorie anzeigen");
-        System.out.println("12 - Buchungshistorie eines Artikels anzeigen");
-        System.out.println("13 - Buchungshistorie in Datei speichern");
-        System.out.println("14 - Buchungshistorie aus Datei laden");
-        System.out.println("15 - Lagerstatistik anzeigen");
-        System.out.println("0  - Beenden");
-        System.out.println();
-        System.out.print("Bitte Option wählen: ");
-        System.out.println();
-    }
-
-    private static void printArticleTable(List<Article> articles) {
-        System.out.println(
-                "--------------------------------------------------------------------------------------------------");
-        System.out.printf("%-15s %-25s %-12s %-12s %-15s%n",
-                "Artikelnummer", "Artikelname", "Preis", "Bestand", "Mindestbestand");
-        System.out.println(
-                "--------------------------------------------------------------------------------------------------");
-
-        for (Article article : articles) {
-            System.out.printf("%-15s %-25s %-12s %-12d %-15d%n",
-                    article.getArticleID(),
-                    article.getArticleName(),
-                    article.getArticlePrice(),
-                    article.getStock(),
-                    article.getMinimumStock());
-        }
-
-        System.out.println(
-                "--------------------------------------------------------------------------------------------------");
+        System.out.println("===== Lagerverwaltung =====");
+        System.out.println("1 - Standardartikel anlegen");
+        System.out.println("2 - PokemonCard anlegen");
+        System.out.println("3 - Alle Artikel anzeigen");
+        System.out.println("4 - Nur PokemonCards anzeigen");
+        System.out.println("5 - Artikel nach Nummer suchen");
+        System.out.println("6 - Artikel nach Namen suchen");
+        System.out.println("7 - Zugang buchen");
+        System.out.println("8 - Abgang buchen");
+        System.out.println("9 - Kritische Bestände anzeigen");
+        System.out.println("10 - Artikel löschen");
+        System.out.println("11 - Artikel speichern");
+        System.out.println("12 - Artikel laden");
+        System.out.println("13 - Gesamte Buchungshistorie anzeigen");
+        System.out.println("14 - Buchungshistorie zu Artikel anzeigen");
+        System.out.println("15 - Buchungshistorie speichern");
+        System.out.println("16 - Buchungshistorie laden");
+        System.out.println("17 - Lagerstatistik anzeigen");
+        System.out.println("0 - Beenden");
+        System.out.print("Auswahl: ");
     }
 
     private static void showStatistics(Inventory inventory) {
@@ -149,7 +110,7 @@ public class Main {
         System.out.println("Kritische Artikel: " + inventory.getLowStockCount());
     }
 
-    private static void createArticle(Scanner scanner, Inventory inventory) {
+    private static void createStandardArticle(Scanner scanner, Inventory inventory) {
         try {
             String articleName = InputHelper.readNonEmptyString(scanner, "Artikelname: ");
             String articleID = InputHelper.readNonEmptyString(scanner, "Artikelnummer: ");
@@ -167,8 +128,101 @@ public class Main {
         }
     }
 
+    private static void createPokemonCard(Scanner scanner, Inventory inventory) {
+        try {
+            String articleName = InputHelper.readNonEmptyString(scanner, "Kartenname: ");
+            String articleID = InputHelper.readNonEmptyString(scanner, "Setnummer: ");
+            BigDecimal articlePrice = InputHelper.readNonNegativeBigDecimal(scanner, "Preis: ");
+            int stock = InputHelper.readNonNegativeInt(scanner, "Bestand: ");
+            String setName = InputHelper.readNonEmptyString(scanner, "Setname: ");
+            int releaseYear = InputHelper.readNonNegativeInt(scanner, "Erscheinungsjahr: ");
+
+            printAvailableConditions();
+            CardCondition condition = readCardCondition(scanner);
+
+            printAvailableHoloTypes();
+            HoloType holoType = readHoloType(scanner);
+            String language = InputHelper.readNonEmptyString(scanner, "Sprache: ");
+            boolean firstEdition = readYesNo(scanner, "First Edition (ja/nein): ");
+
+            PokemonCard pokemonCard = new PokemonCard(
+                    articleName,
+                    articleID,
+                    articlePrice,
+                    stock,
+                    setName,
+                    releaseYear,
+                    condition,
+                    holoType,
+                    language,
+                    firstEdition
+            );
+
+            inventory.addArticle(pokemonCard);
+
+            System.out.println("PokemonCard erfolgreich hinzugefügt:");
+            printSingleArticle(pokemonCard);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Fehler: " + e.getMessage());
+        }
+    }
+
+    private static void printAvailableConditions() {
+        System.out.println("Verfügbare Zustände:");
+        for (CardCondition condition : CardCondition.values()) {
+            System.out.println("- " + condition.getFormattedDisplay());
+        }
+    }
+
+    private static CardCondition readCardCondition(Scanner scanner) {
+        while (true) {
+            String input = InputHelper.readNonEmptyString(scanner, "Zustand eingeben: ");
+
+            try {
+                return CardCondition.fromInput(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ungültiger Zustand. Bitte erneut eingeben.");
+            }
+        }
+    }
+
+    private static boolean readYesNo(Scanner scanner, String prompt) {
+        while (true) {
+            String input = InputHelper.readNonEmptyString(scanner, prompt).trim().toLowerCase();
+
+            if (input.equals("ja") || input.equals("j")) {
+                return true;
+            }
+
+            if (input.equals("nein") || input.equals("n")) {
+                return false;
+            }
+
+            System.out.println("Bitte 'ja' oder 'nein' eingeben.");
+        }
+    }
+
+    private static void printAvailableHoloTypes() {
+        System.out.println("Verfügbare HoloType-Werte:");
+        for (HoloType holoType : HoloType.values()) {
+            System.out.println("- " + holoType.getDisplayName());
+        }
+    }
+
+    private static HoloType readHoloType(Scanner scanner) {
+        while (true) {
+            String input = InputHelper.readNonEmptyString(scanner, "HoloType eingeben: ");
+
+            try {
+                return HoloType.fromInput(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ungültiger HoloType. Bitte erneut eingeben.");
+            }
+        }
+    }
+
     private static void showAllArticles(Inventory inventory) {
-        List<Article> allArticles = inventory.getAllArticles();
+        List<BaseArticle> allArticles = inventory.getAllArticles();
 
         if (allArticles.isEmpty()) {
             System.out.println("Keine Artikel vorhanden.");
@@ -178,9 +232,20 @@ public class Main {
         }
     }
 
+    private static void showAllPokemonCards(Inventory inventory) {
+        List<PokemonCard> pokemonCards = inventory.getAllPokemonCards();
+
+        if (pokemonCards.isEmpty()) {
+            System.out.println("Keine PokemonCards vorhanden.");
+        } else {
+            System.out.println("Alle PokemonCards:");
+            printPokemonCardTable(pokemonCards);
+        }
+    }
+
     private static void searchArticleByID(Scanner scanner, Inventory inventory) {
         String searchID = InputHelper.readNonEmptyString(scanner, "Artikelnummer eingeben: ");
-        Article article = inventory.getArticleByNumber(searchID);
+        BaseArticle article = inventory.getArticleByNumber(searchID);
 
         if (article != null) {
             System.out.println("Gefundener Artikel:");
@@ -192,7 +257,7 @@ public class Main {
 
     private static void searchArticleByName(Scanner scanner, Inventory inventory) {
         String searchName = InputHelper.readNonEmptyString(scanner, "Artikelname eingeben: ");
-        Article article = inventory.getArticleByName(searchName);
+        BaseArticle article = inventory.getArticleByName(searchName);
 
         if (article != null) {
             System.out.println("Gefundener Artikel:");
@@ -231,7 +296,7 @@ public class Main {
     }
 
     private static void showLowStockItems(Inventory inventory) {
-        List<Article> lowStockItems = inventory.getLowStockItems();
+        List<BaseArticle> lowStockItems = inventory.getLowStockItems();
 
         if (lowStockItems.isEmpty()) {
             System.out.println("Keine kritischen Bestände vorhanden.");
@@ -241,32 +306,120 @@ public class Main {
         }
     }
 
-    private static void printSingleArticle(Article article) {
-        System.out.println(
-                "--------------------------------------------------------------------------------------------------");
-        System.out.printf("%-15s %-25s %-12s %-12s %-15s%n",
-                "Artikelnummer", "Artikelname", "Preis", "Bestand", "Mindestbestand");
-        System.out.println(
-                "--------------------------------------------------------------------------------------------------");
+    private static void printArticleTable(List<BaseArticle> articles) {
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-15s %-15s %-25s %-12s %-10s %-15s %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                "Typ", "Artikelnummer", "Artikelname", "Preis", "Bestand", "Mindestbestand",
+                "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-        System.out.printf("%-15s %-25s %-12s %-12d %-15d%n",
-                article.getArticleID(),
-                article.getArticleName(),
-                article.getArticlePrice(),
-                article.getStock(),
-                article.getMinimumStock());
+        for (BaseArticle article : articles) {
+            if (article instanceof Article normalArticle) {
+                System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15d %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                        normalArticle.getArticleType(),
+                        normalArticle.getArticleID(),
+                        normalArticle.getArticleName(),
+                        normalArticle.getArticlePrice(),
+                        normalArticle.getStock(),
+                        normalArticle.getMinimumStock(),
+                        "-",
+                        "-",
+                        "-",
+                        "-",
+                        "-",
+                        "-");
+            } else if (article instanceof PokemonCard pokemonCard) {
+                System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15s %-15s %-12d %-20s %-15s %-12s %-15s%n",
+                        pokemonCard.getArticleType(),
+                        pokemonCard.getArticleID(),
+                        pokemonCard.getArticleName(),
+                        pokemonCard.getArticlePrice(),
+                        pokemonCard.getStock(),
+                        "-",
+                        pokemonCard.getSetName(),
+                        pokemonCard.getReleaseYear(),
+                        pokemonCard.getCondition(),
+                        pokemonCard.getHoloType(),
+                        pokemonCard.getLanguage(),
+                        pokemonCard.isFirstEdition() ? "Ja" : "Nein");
+            }
+        }
 
-        System.out.println(
-                "--------------------------------------------------------------------------------------------------");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+    }
+
+    private static void printPokemonCardTable(List<PokemonCard> pokemonCards) {
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-15s %-25s %-12s %-10s %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                "Setnummer", "Kartenname", "Preis", "Bestand", "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+
+        for (PokemonCard pokemonCard : pokemonCards) {
+            System.out.printf("%-15s %-25s %-12s %-10d %-15s %-12d %-20s %-15s %-12s %-15s%n",
+                    pokemonCard.getArticleID(),
+                    pokemonCard.getArticleName(),
+                    pokemonCard.getArticlePrice(),
+                    pokemonCard.getStock(),
+                    pokemonCard.getSetName(),
+                    pokemonCard.getReleaseYear(),
+                    pokemonCard.getCondition(),
+                    pokemonCard.getHoloType(),
+                    pokemonCard.getLanguage(),
+                    pokemonCard.isFirstEdition() ? "Ja" : "Nein");
+        }
+
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+    }
+
+    private static void printSingleArticle(BaseArticle article) {
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-15s %-15s %-25s %-12s %-10s %-15s %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                "Typ", "Artikelnummer", "Artikelname", "Preis", "Bestand", "Mindestbestand",
+                "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+        if (article instanceof Article normalArticle) {
+            System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15d %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                    normalArticle.getArticleType(),
+                    normalArticle.getArticleID(),
+                    normalArticle.getArticleName(),
+                    normalArticle.getArticlePrice(),
+                    normalArticle.getStock(),
+                    normalArticle.getMinimumStock(),
+                    "-",
+                    "-",
+                    "-",
+                    "-",
+                    "-",
+                    "-");
+        } else if (article instanceof PokemonCard pokemonCard) {
+            System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15s %-15s %-12d %-20s %-15s %-12s %-15s%n",
+                    pokemonCard.getArticleType(),
+                    pokemonCard.getArticleID(),
+                    pokemonCard.getArticleName(),
+                    pokemonCard.getArticlePrice(),
+                    pokemonCard.getStock(),
+                    "-",
+                    pokemonCard.getSetName(),
+                    pokemonCard.getReleaseYear(),
+                    pokemonCard.getCondition(),
+                    pokemonCard.getHoloType(),
+                    pokemonCard.getLanguage(),
+                    pokemonCard.isFirstEdition() ? "Ja" : "Nein");
+        }
+
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
     }
 
     private static void printMovementTable(List<StockMovement> movements) {
-        System.out.println(
-                "----------------------------------------------------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
         System.out.printf("%-20s %-15s %-25s %-15s %-10s%n",
                 "Zeitstempel", "Artikelnummer", "Artikelname", "Bewegung", "Menge");
-        System.out.println(
-                "----------------------------------------------------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
 
         for (StockMovement movement : movements) {
             System.out.printf("%-20s %-15s %-25s %-15s %-10d%n",
@@ -277,13 +430,12 @@ public class Main {
                     movement.getAmount());
         }
 
-        System.out.println(
-                "----------------------------------------------------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
     }
 
     private static String formatTimestamp(java.time.LocalDateTime timestamp) {
-        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
-                .ofPattern("dd.MM.yyyy HH:mm:ss");
+        java.time.format.DateTimeFormatter formatter =
+                java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
         return timestamp.format(formatter);
     }
 
@@ -299,8 +451,7 @@ public class Main {
     }
 
     private static void saveArticles(Scanner scanner, Inventory inventory) {
-        String fileName = InputHelper.readNonEmptyString(scanner,
-                "Dateiname für Artikel eingeben (z. B. articles.txt): ");
+        String fileName = InputHelper.readNonEmptyString(scanner, "Dateiname für Artikel eingeben (z. B. articles.txt): ");
 
         try {
             inventory.saveToFile(fileName);
@@ -311,8 +462,7 @@ public class Main {
     }
 
     private static void loadArticles(Scanner scanner, Inventory inventory) {
-        String fileName = InputHelper.readNonEmptyString(scanner,
-                "Dateiname für Artikel eingeben (z. B. articles.txt): ");
+        String fileName = InputHelper.readNonEmptyString(scanner, "Dateiname für Artikel eingeben (z. B. articles.txt): ");
 
         try {
             inventory.loadFromFile(fileName);
@@ -348,8 +498,7 @@ public class Main {
     }
 
     private static void saveMovements(Scanner scanner, Inventory inventory) {
-        String fileName = InputHelper.readNonEmptyString(scanner,
-                "Dateiname für Historie eingeben (z. B. movements.txt): ");
+        String fileName = InputHelper.readNonEmptyString(scanner, "Dateiname für Historie eingeben (z. B. movements.txt): ");
 
         try {
             inventory.saveMovementsToFile(fileName);
@@ -360,8 +509,7 @@ public class Main {
     }
 
     private static void loadMovements(Scanner scanner, Inventory inventory) {
-        String fileName = InputHelper.readNonEmptyString(scanner,
-                "Dateiname für Historie eingeben (z. B. movements.txt): ");
+        String fileName = InputHelper.readNonEmptyString(scanner, "Dateiname für Historie eingeben (z. B. movements.txt): ");
 
         try {
             inventory.loadMovementsFromFile(fileName);

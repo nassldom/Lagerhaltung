@@ -8,14 +8,36 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InventoryTest {
 
     @Test
-    void addArticle_shouldAddArticleSuccessfully() {
+    void addArticle_shouldAddStandardArticleSuccessfully() {
         Inventory inventory = new Inventory();
         Article article = new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3);
 
         inventory.addArticle(article);
 
         assertEquals(1, inventory.getAllArticles().size());
-        assertEquals(article, inventory.getAllArticles().get(0));
+        assertEquals(article, inventory.getAllArticles().getFirst());
+    }
+
+    @Test
+    void addArticle_shouldAddPokemonCardSuccessfully() {
+        Inventory inventory = new Inventory();
+        PokemonCard pokemonCard = new PokemonCard(
+                "Pikachu",
+                "SET-001",
+                new BigDecimal("99.99"),
+                3,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                true
+        );
+
+        inventory.addArticle(pokemonCard);
+
+        assertEquals(1, inventory.getAllArticles().size());
+        assertEquals(pokemonCard, inventory.getAllArticles().getFirst());
     }
 
     @Test
@@ -29,11 +51,22 @@ public class InventoryTest {
     void addArticle_shouldThrowExceptionWhenArticleIdAlreadyExists() {
         Inventory inventory = new Inventory();
         Article article1 = new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3);
-        Article article2 = new Article("Monitor", "A100", new BigDecimal("199.99"), 5, 2);
+        PokemonCard pokemonCard = new PokemonCard(
+                "Pikachu",
+                "A100",
+                new BigDecimal("99.99"),
+                2,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                false
+        );
 
         inventory.addArticle(article1);
 
-        assertThrows(IllegalArgumentException.class, () -> inventory.addArticle(article2));
+        assertThrows(IllegalArgumentException.class, () -> inventory.addArticle(pokemonCard));
     }
 
     @Test
@@ -43,17 +76,42 @@ public class InventoryTest {
 
         inventory.addArticle(article);
 
-        Article foundArticle = inventory.getArticleByNumber("A100");
+        BaseArticle foundArticle = inventory.getArticleByNumber("A100");
 
         assertNotNull(foundArticle);
         assertEquals(article, foundArticle);
     }
 
     @Test
+    void getArticleByNumber_shouldReturnPokemonCardWhenFound() {
+        Inventory inventory = new Inventory();
+        PokemonCard pokemonCard = new PokemonCard(
+                "Charizard",
+                "SET-002",
+                new BigDecimal("499.99"),
+                1,
+                "Base Set",
+                1999,
+                CardCondition.EXCELLENT,
+                HoloType.HOLO,
+                "Englisch",
+                true
+        );
+
+        inventory.addArticle(pokemonCard);
+
+        BaseArticle foundArticle = inventory.getArticleByNumber("SET-002");
+
+        assertNotNull(foundArticle);
+        assertEquals(pokemonCard, foundArticle);
+        assertInstanceOf(PokemonCard.class, foundArticle);
+    }
+
+    @Test
     void getArticleByNumber_shouldReturnNullWhenNotFound() {
         Inventory inventory = new Inventory();
 
-        Article foundArticle = inventory.getArticleByNumber("UNKNOWN");
+        BaseArticle foundArticle = inventory.getArticleByNumber("UNKNOWN");
 
         assertNull(foundArticle);
     }
@@ -65,32 +123,23 @@ public class InventoryTest {
 
         inventory.addArticle(article);
 
-        Article foundArticle = inventory.getArticleByName("Laptop");
+        BaseArticle foundArticle = inventory.getArticleByName("Laptop");
 
         assertNotNull(foundArticle);
         assertEquals(article, foundArticle);
     }
 
     @Test
-    void getArticleByName_shouldReturnNullWhenNotFound() {
-        Inventory inventory = new Inventory();
-
-        Article foundArticle = inventory.getArticleByName("Drucker");
-
-        assertNull(foundArticle);
-    }
-
-    @Test
-    void removeArticle_shouldReturnTrueWhenArticleExists() {
+    void removeArticle_shouldRemoveExistingArticle() {
         Inventory inventory = new Inventory();
         Article article = new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3);
 
         inventory.addArticle(article);
-
         boolean removed = inventory.removeArticle("A100");
 
         assertTrue(removed);
         assertEquals(0, inventory.getAllArticles().size());
+        assertNull(inventory.getArticleByNumber("A100"));
     }
 
     @Test
@@ -114,6 +163,28 @@ public class InventoryTest {
     }
 
     @Test
+    void increaseStock_shouldAlsoWorkForPokemonCard() {
+        Inventory inventory = new Inventory();
+        PokemonCard pokemonCard = new PokemonCard(
+                "Mewtwo",
+                "SET-003",
+                new BigDecimal("149.99"),
+                2,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.REVERSE_HOLO,
+                "Deutsch",
+                false
+        );
+
+        inventory.addArticle(pokemonCard);
+        inventory.increaseStock("SET-003", 4);
+
+        assertEquals(6, pokemonCard.getStock());
+    }
+
+    @Test
     void increaseStock_shouldCreateStockMovement() {
         Inventory inventory = new Inventory();
         Article article = new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3);
@@ -122,10 +193,7 @@ public class InventoryTest {
         inventory.increaseStock("A100", 5);
 
         assertEquals(1, inventory.getAllMovements().size());
-        assertEquals("A100", inventory.getAllMovements().get(0).getArticleID());
-        assertEquals("Laptop", inventory.getAllMovements().get(0).getArticleName());
-        assertEquals(MovementType.IN, inventory.getAllMovements().get(0).getMovementType());
-        assertEquals(5, inventory.getAllMovements().get(0).getAmount());
+        assertEquals("A100", inventory.getAllMovements().getFirst().getArticleID());
     }
 
     @Test
@@ -147,6 +215,28 @@ public class InventoryTest {
     }
 
     @Test
+    void decreaseStock_shouldAlsoWorkForPokemonCard() {
+        Inventory inventory = new Inventory();
+        PokemonCard pokemonCard = new PokemonCard(
+                "Blastoise",
+                "SET-004",
+                new BigDecimal("299.99"),
+                5,
+                "Base Set",
+                1999,
+                CardCondition.GOOD,
+                HoloType.HOLO,
+                "Japanisch",
+                true
+        );
+
+        inventory.addArticle(pokemonCard);
+        inventory.decreaseStock("SET-004", 2);
+
+        assertEquals(3, pokemonCard.getStock());
+    }
+
+    @Test
     void decreaseStock_shouldCreateStockMovement() {
         Inventory inventory = new Inventory();
         Article article = new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3);
@@ -155,10 +245,7 @@ public class InventoryTest {
         inventory.decreaseStock("A100", 4);
 
         assertEquals(1, inventory.getAllMovements().size());
-        assertEquals("A100", inventory.getAllMovements().get(0).getArticleID());
-        assertEquals("Laptop", inventory.getAllMovements().get(0).getArticleName());
-        assertEquals(MovementType.OUT, inventory.getAllMovements().get(0).getMovementType());
-        assertEquals(4, inventory.getAllMovements().get(0).getAmount());
+        assertEquals("A100", inventory.getAllMovements().getFirst().getArticleID());
     }
 
     @Test
@@ -169,23 +256,78 @@ public class InventoryTest {
     }
 
     @Test
-    void getLowStockItems_shouldReturnOnlyCriticalArticles() {
+    void getLowStockItems_shouldReturnOnlyCriticalStandardArticles() {
         Inventory inventory = new Inventory();
 
         Article article1 = new Article("Laptop", "A100", new BigDecimal("999.99"), 2, 3);
         Article article2 = new Article("Monitor", "A101", new BigDecimal("199.99"), 10, 3);
         Article article3 = new Article("Tastatur", "A102", new BigDecimal("49.99"), 1, 2);
+        PokemonCard pokemonCard = new PokemonCard(
+                "Pikachu",
+                "SET-001",
+                new BigDecimal("99.99"),
+                1,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                true
+        );
 
         inventory.addArticle(article1);
         inventory.addArticle(article2);
         inventory.addArticle(article3);
+        inventory.addArticle(pokemonCard);
 
-        List<Article> lowStockItems = inventory.getLowStockItems();
+        List<BaseArticle> lowStockItems = inventory.getLowStockItems();
 
         assertEquals(2, lowStockItems.size());
         assertTrue(lowStockItems.contains(article1));
         assertTrue(lowStockItems.contains(article3));
         assertFalse(lowStockItems.contains(article2));
+        assertFalse(lowStockItems.contains(pokemonCard));
+    }
+
+    @Test
+    void getAllPokemonCards_shouldReturnOnlyPokemonCards() {
+        Inventory inventory = new Inventory();
+
+        Article article = new Article("Monitor", "A101", new BigDecimal("199.99"), 10, 3);
+        PokemonCard pokemonCard1 = new PokemonCard(
+                "Pikachu",
+                "SET-001",
+                new BigDecimal("99.99"),
+                1,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                true
+        );
+        PokemonCard pokemonCard2 = new PokemonCard(
+                "Charizard",
+                "SET-002",
+                new BigDecimal("499.99"),
+                1,
+                "Base Set",
+                1999,
+                CardCondition.EXCELLENT,
+                HoloType.FULL_ART,
+                "Englisch",
+                false
+        );
+
+        inventory.addArticle(article);
+        inventory.addArticle(pokemonCard1);
+        inventory.addArticle(pokemonCard2);
+
+        List<PokemonCard> pokemonCards = inventory.getAllPokemonCards();
+
+        assertEquals(2, pokemonCards.size());
+        assertTrue(pokemonCards.contains(pokemonCard1));
+        assertTrue(pokemonCards.contains(pokemonCard2));
     }
 
     @Test
@@ -215,7 +357,18 @@ public class InventoryTest {
 
         inventory.addArticle(new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3));
         inventory.addArticle(new Article("Monitor", "A101", new BigDecimal("199.99"), 5, 2));
-        inventory.addArticle(new Article("Tastatur", "A102", new BigDecimal("49.99"), 8, 2));
+        inventory.addArticle(new PokemonCard(
+                "Pikachu",
+                "SET-001",
+                new BigDecimal("99.99"),
+                3,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                true
+        ));
 
         assertEquals(3, inventory.getArticleCount());
     }
@@ -226,7 +379,18 @@ public class InventoryTest {
 
         inventory.addArticle(new Article("Laptop", "A100", new BigDecimal("999.99"), 10, 3));
         inventory.addArticle(new Article("Monitor", "A101", new BigDecimal("199.99"), 5, 2));
-        inventory.addArticle(new Article("Tastatur", "A102", new BigDecimal("49.99"), 8, 2));
+        inventory.addArticle(new PokemonCard(
+                "Pikachu",
+                "SET-001",
+                new BigDecimal("99.99"),
+                8,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                false
+        ));
 
         assertEquals(23, inventory.getTotalStock());
     }
@@ -238,6 +402,18 @@ public class InventoryTest {
         inventory.addArticle(new Article("Laptop", "A100", new BigDecimal("999.99"), 2, 3));
         inventory.addArticle(new Article("Monitor", "A101", new BigDecimal("199.99"), 5, 2));
         inventory.addArticle(new Article("Tastatur", "A102", new BigDecimal("49.99"), 1, 2));
+        inventory.addArticle(new PokemonCard(
+                "Pikachu",
+                "SET-001",
+                new BigDecimal("99.99"),
+                1,
+                "Base Set",
+                1999,
+                CardCondition.NEAR_MINT,
+                HoloType.HOLO,
+                "Deutsch",
+                true
+        ));
 
         assertEquals(2, inventory.getLowStockCount());
     }

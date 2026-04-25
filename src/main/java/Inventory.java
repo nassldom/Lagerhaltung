@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Inventory {
 
-    private List<Article> articles;
+    private List<BaseArticle> articles;
     private List<StockMovement> stockMovements;
 
     public Inventory() {
@@ -20,12 +20,12 @@ public class Inventory {
         this.stockMovements = new ArrayList<>();
     }
 
-    public void addArticle(Article article) {
+    public void addArticle(BaseArticle article) {
         if (article == null) {
             throw new IllegalArgumentException("Artikel darf nicht null sein.");
         }
 
-        for (Article existingArticle : articles) {
+        for (BaseArticle existingArticle : articles) {
             if (existingArticle.getArticleID().equalsIgnoreCase(article.getArticleID())) {
                 throw new IllegalArgumentException("Artikel mit dieser Nummer existiert bereits.");
             }
@@ -34,16 +34,28 @@ public class Inventory {
         articles.add(article);
     }
 
-    public List<Article> getAllArticles() {
+    public List<BaseArticle> getAllArticles() {
         return articles;
     }
 
-    public Article getArticleByNumber(String articleID) {
+    public List<PokemonCard> getAllPokemonCards() {
+        List<PokemonCard> pokemonCards = new ArrayList<>();
+
+        for (BaseArticle article : articles) {
+            if (article instanceof PokemonCard pokemonCard) {
+                pokemonCards.add(pokemonCard);
+            }
+        }
+
+        return pokemonCards;
+    }
+
+    public BaseArticle getArticleByNumber(String articleID) {
         if (articleID == null || articleID.trim().isEmpty()) {
             throw new IllegalArgumentException("Artikelnummer darf nicht leer sein.");
         }
 
-        for (Article article : articles) {
+        for (BaseArticle article : articles) {
             if (article.getArticleID().equalsIgnoreCase(articleID.trim())) {
                 return article;
             }
@@ -52,12 +64,12 @@ public class Inventory {
         return null;
     }
 
-    public Article getArticleByName(String articleName) {
+    public BaseArticle getArticleByName(String articleName) {
         if (articleName == null || articleName.trim().isEmpty()) {
             throw new IllegalArgumentException("Artikelname darf nicht leer sein.");
         }
 
-        for (Article article : articles) {
+        for (BaseArticle article : articles) {
             if (article.getArticleName().equalsIgnoreCase(articleName.trim())) {
                 return article;
             }
@@ -67,7 +79,7 @@ public class Inventory {
     }
 
     public boolean removeArticle(String articleID) {
-        Article article = getArticleByNumber(articleID);
+        BaseArticle article = getArticleByNumber(articleID);
 
         if (article == null) {
             return false;
@@ -77,7 +89,7 @@ public class Inventory {
     }
 
     public void increaseStock(String articleID, int amount) {
-        Article article = getArticleByNumber(articleID);
+        BaseArticle article = getArticleByNumber(articleID);
 
         if (article == null) {
             throw new IllegalArgumentException("Artikel nicht gefunden.");
@@ -93,7 +105,7 @@ public class Inventory {
     }
 
     public void decreaseStock(String articleID, int amount) {
-        Article article = getArticleByNumber(articleID);
+        BaseArticle article = getArticleByNumber(articleID);
 
         if (article == null) {
             throw new IllegalArgumentException("Artikel nicht gefunden.");
@@ -108,11 +120,11 @@ public class Inventory {
         ));
     }
 
-    public List<Article> getLowStockItems() {
-        List<Article> lowStockItems = new ArrayList<>();
+    public List<BaseArticle> getLowStockItems() {
+        List<BaseArticle> lowStockItems = new ArrayList<>();
 
-        for (Article article : articles) {
-            if (article.getStock() <= article.getMinimumStock()) {
+        for (BaseArticle article : articles) {
+            if (article.hasLowStock()) {
                 lowStockItems.add(article);
             }
         }
@@ -147,7 +159,7 @@ public class Inventory {
     public int getTotalStock() {
         int totalStock = 0;
 
-        for (Article article : articles) {
+        for (BaseArticle article : articles) {
             totalStock += article.getStock();
         }
 
@@ -160,21 +172,38 @@ public class Inventory {
 
     public void saveToFile(String fileName) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (Article article : articles) {
-                writer.write(
-                        article.getArticleName() + ";" +
-                        article.getArticleID() + ";" +
-                        article.getArticlePrice() + ";" +
-                        article.getStock() + ";" +
-                        article.getMinimumStock()
-                );
+            for (BaseArticle article : articles) {
+                if (article instanceof Article normalArticle) {
+                    writer.write(
+                            "ARTICLE;" +
+                                    normalArticle.getArticleName() + ";" +
+                                    normalArticle.getArticleID() + ";" +
+                                    normalArticle.getArticlePrice() + ";" +
+                                    normalArticle.getStock() + ";" +
+                                    normalArticle.getMinimumStock()
+                    );
+                } else if (article instanceof PokemonCard pokemonCard) {
+                    writer.write(
+                            "POKEMONCARD;" +
+                                    pokemonCard.getArticleName() + ";" +
+                                    pokemonCard.getArticleID() + ";" +
+                                    pokemonCard.getArticlePrice() + ";" +
+                                    pokemonCard.getStock() + ";" +
+                                    pokemonCard.getSetName() + ";" +
+                                    pokemonCard.getReleaseYear() + ";" +
+                                    pokemonCard.getCondition().name() + ";" +
+                                    pokemonCard.getHoloType().name() + ";" +
+                                    pokemonCard.getLanguage() + ";" +
+                                    pokemonCard.isFirstEdition()
+                    );
+                }
                 writer.newLine();
             }
         }
     }
 
     public void loadFromFile(String fileName) throws IOException {
-        List<Article> loadedArticles = new ArrayList<>();
+        List<BaseArticle> loadedArticles = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -186,17 +215,49 @@ public class Inventory {
 
                 String[] parts = line.split(";");
 
-                if (parts.length != 5) {
-                    throw new IllegalArgumentException("Ungültiges Artikelformat in Datei: " + line);
+                if (parts[0].equals("ARTICLE")) {
+                    if (parts.length != 6) {
+                        throw new IllegalArgumentException("Ungültiges Artikelformat in Datei: " + line);
+                    }
+
+                    String articleName = parts[1].trim();
+                    String articleID = parts[2].trim();
+                    BigDecimal articlePrice = new BigDecimal(parts[3].trim());
+                    int stock = Integer.parseInt(parts[4].trim());
+                    int minimumStock = Integer.parseInt(parts[5].trim());
+
+                    loadedArticles.add(new Article(articleName, articleID, articlePrice, stock, minimumStock));
+                } else if (parts[0].equals("POKEMONCARD")) {
+                    if (parts.length != 11) {
+                        throw new IllegalArgumentException("Ungültiges PokemonCard-Format in Datei: " + line);
+                    }
+
+                    String articleName = parts[1].trim();
+                    String articleID = parts[2].trim();
+                    BigDecimal articlePrice = new BigDecimal(parts[3].trim());
+                    int stock = Integer.parseInt(parts[4].trim());
+                    String setName = parts[5].trim();
+                    int releaseYear = Integer.parseInt(parts[6].trim());
+                    CardCondition condition = CardCondition.valueOf(parts[7].trim());
+                    HoloType holoType = HoloType.valueOf(parts[8].trim());
+                    String language = parts[9].trim();
+                    boolean firstEdition = Boolean.parseBoolean(parts[10].trim());
+
+                    loadedArticles.add(new PokemonCard(
+                            articleName,
+                            articleID,
+                            articlePrice,
+                            stock,
+                            setName,
+                            releaseYear,
+                            condition,
+                            holoType,
+                            language,
+                            firstEdition
+                    ));
+                } else {
+                    throw new IllegalArgumentException("Unbekannter Artikeltyp in Datei: " + line);
                 }
-
-                String articleName = parts[0].trim();
-                String articleID = parts[1].trim();
-                BigDecimal articlePrice = new BigDecimal(parts[2].trim());
-                int stock = Integer.parseInt(parts[3].trim());
-                int minimumStock = Integer.parseInt(parts[4].trim());
-
-                loadedArticles.add(new Article(articleName, articleID, articlePrice, stock, minimumStock));
             }
         }
 
