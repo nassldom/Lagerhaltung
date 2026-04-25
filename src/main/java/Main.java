@@ -5,9 +5,21 @@ import java.util.Scanner;
 
 public class Main {
 
+    private static final String ARTICLE_TABLE_LINE =
+            "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
+
+    private static final String POKEMON_TABLE_LINE =
+            "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
+
+    private static final String MOVEMENT_TABLE_LINE =
+            "----------------------------------------------------------------------------------------------------------------";
+
     public static void main(String[] args) {
+        DatabaseManager.initializeDatabase();
+
         Scanner scanner = new Scanner(System.in);
         Inventory inventory = new Inventory();
+        PokemonCardRepository pokemonCardRepository = new PokemonCardRepository();
         boolean running = true;
 
         while (running) {
@@ -66,6 +78,18 @@ public class Main {
                 case "17":
                     showStatistics(inventory);
                     break;
+                case "18":
+                    savePokemonCardsToDatabase(inventory, pokemonCardRepository);
+                    break;
+                case "19":
+                    loadPokemonCardsFromDatabase(inventory, pokemonCardRepository);
+                    break;
+                case "20":
+                    showPokemonCardsFromDatabase(pokemonCardRepository);
+                    break;
+                case "21":
+                    clearPokemonCardsDatabase(scanner, pokemonCardRepository);
+                    break;
                 case "0":
                     running = false;
                     System.out.println("Programm beendet.");
@@ -99,6 +123,10 @@ public class Main {
         System.out.println("15 - Buchungshistorie speichern");
         System.out.println("16 - Buchungshistorie laden");
         System.out.println("17 - Lagerstatistik anzeigen");
+        System.out.println("18 - PokemonCards in DB speichern");
+        System.out.println("19 - PokemonCards aus DB laden");
+        System.out.println("20 - PokemonCards direkt aus DB anzeigen");
+        System.out.println("21 - PokemonCard-DB leeren");
         System.out.println("0 - Beenden");
         System.out.print("Auswahl: ");
     }
@@ -142,6 +170,7 @@ public class Main {
 
             printAvailableHoloTypes();
             HoloType holoType = readHoloType(scanner);
+
             String language = InputHelper.readNonEmptyString(scanner, "Sprache: ");
             boolean firstEdition = readYesNo(scanner, "First Edition (ja/nein): ");
 
@@ -186,22 +215,6 @@ public class Main {
         }
     }
 
-    private static boolean readYesNo(Scanner scanner, String prompt) {
-        while (true) {
-            String input = InputHelper.readNonEmptyString(scanner, prompt).trim().toLowerCase();
-
-            if (input.equals("ja") || input.equals("j")) {
-                return true;
-            }
-
-            if (input.equals("nein") || input.equals("n")) {
-                return false;
-            }
-
-            System.out.println("Bitte 'ja' oder 'nein' eingeben.");
-        }
-    }
-
     private static void printAvailableHoloTypes() {
         System.out.println("Verfügbare HoloType-Werte:");
         for (HoloType holoType : HoloType.values()) {
@@ -218,6 +231,22 @@ public class Main {
             } catch (IllegalArgumentException e) {
                 System.out.println("Ungültiger HoloType. Bitte erneut eingeben.");
             }
+        }
+    }
+
+    private static boolean readYesNo(Scanner scanner, String prompt) {
+        while (true) {
+            String input = InputHelper.readNonEmptyString(scanner, prompt).trim().toLowerCase();
+
+            if (input.equals("ja") || input.equals("j")) {
+                return true;
+            }
+
+            if (input.equals("nein") || input.equals("n")) {
+                return false;
+            }
+
+            System.out.println("Bitte 'ja' oder 'nein' eingeben.");
         }
     }
 
@@ -307,15 +336,18 @@ public class Main {
     }
 
     private static void printArticleTable(List<BaseArticle> articles) {
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-        System.out.printf("%-15s %-15s %-25s %-12s %-10s %-15s %-15s %-12s %-20s %-15s %-12s %-15s%n",
+        System.out.println(ARTICLE_TABLE_LINE);
+        System.out.printf(
+                "%-15s %-15s %-25s %-12s %-10s %-15s %-15s %-12s %-20s %-15s %-12s %-15s%n",
                 "Typ", "Artikelnummer", "Artikelname", "Preis", "Bestand", "Mindestbestand",
-                "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition");
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition"
+        );
+        System.out.println(ARTICLE_TABLE_LINE);
 
         for (BaseArticle article : articles) {
             if (article instanceof Article normalArticle) {
-                System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15d %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                System.out.printf(
+                        "%-15s %-15s %-25s %-12s %-10d %-15d %-15s %-12s %-20s %-15s %-12s %-15s%n",
                         normalArticle.getArticleType(),
                         normalArticle.getArticleID(),
                         normalArticle.getArticleName(),
@@ -327,9 +359,11 @@ public class Main {
                         "-",
                         "-",
                         "-",
-                        "-");
+                        "-"
+                );
             } else if (article instanceof PokemonCard pokemonCard) {
-                System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15s %-15s %-12d %-20s %-15s %-12s %-15s%n",
+                System.out.printf(
+                        "%-15s %-15s %-25s %-12s %-10d %-15s %-15s %-12d %-20s %-15s %-12s %-15s%n",
                         pokemonCard.getArticleType(),
                         pokemonCard.getArticleID(),
                         pokemonCard.getArticleName(),
@@ -341,23 +375,26 @@ public class Main {
                         pokemonCard.getCondition(),
                         pokemonCard.getHoloType(),
                         pokemonCard.getLanguage(),
-                        pokemonCard.isFirstEdition() ? "Ja" : "Nein");
+                        pokemonCard.isFirstEdition() ? "Ja" : "Nein"
+                );
             }
         }
 
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-
+        System.out.println(ARTICLE_TABLE_LINE);
     }
 
     private static void printPokemonCardTable(List<PokemonCard> pokemonCards) {
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-        System.out.printf("%-15s %-25s %-12s %-10s %-15s %-12s %-20s %-15s %-12s %-15s%n",
-                "Setnummer", "Kartenname", "Preis", "Bestand", "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition");
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-
+        System.out.println(POKEMON_TABLE_LINE);
+        System.out.printf(
+                "%-15s %-25s %-12s %-10s %-15s %-12s %-20s %-15s %-12s %-15s%n",
+                "Setnummer", "Kartenname", "Preis", "Bestand", "Set", "Jahr",
+                "Zustand", "HoloType", "Sprache", "1st Edition"
+        );
+        System.out.println(POKEMON_TABLE_LINE);
 
         for (PokemonCard pokemonCard : pokemonCards) {
-            System.out.printf("%-15s %-25s %-12s %-10d %-15s %-12d %-20s %-15s %-12s %-15s%n",
+            System.out.printf(
+                    "%-15s %-25s %-12s %-10d %-15s %-12d %-20s %-15s %-12s %-15s%n",
                     pokemonCard.getArticleID(),
                     pokemonCard.getArticleName(),
                     pokemonCard.getArticlePrice(),
@@ -367,22 +404,25 @@ public class Main {
                     pokemonCard.getCondition(),
                     pokemonCard.getHoloType(),
                     pokemonCard.getLanguage(),
-                    pokemonCard.isFirstEdition() ? "Ja" : "Nein");
+                    pokemonCard.isFirstEdition() ? "Ja" : "Nein"
+            );
         }
 
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-
+        System.out.println(POKEMON_TABLE_LINE);
     }
 
     private static void printSingleArticle(BaseArticle article) {
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-        System.out.printf("%-15s %-15s %-25s %-12s %-10s %-15s %-15s %-12s %-20s %-15s %-12s %-15s%n",
+        System.out.println(ARTICLE_TABLE_LINE);
+        System.out.printf(
+                "%-15s %-15s %-25s %-12s %-10s %-15s %-15s %-12s %-20s %-15s %-12s %-15s%n",
                 "Typ", "Artikelnummer", "Artikelname", "Preis", "Bestand", "Mindestbestand",
-                "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition");
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                "Set", "Jahr", "Zustand", "HoloType", "Sprache", "1st Edition"
+        );
+        System.out.println(ARTICLE_TABLE_LINE);
 
         if (article instanceof Article normalArticle) {
-            System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15d %-15s %-12s %-20s %-15s %-12s %-15s%n",
+            System.out.printf(
+                    "%-15s %-15s %-25s %-12s %-10d %-15d %-15s %-12s %-20s %-15s %-12s %-15s%n",
                     normalArticle.getArticleType(),
                     normalArticle.getArticleID(),
                     normalArticle.getArticleName(),
@@ -394,9 +434,11 @@ public class Main {
                     "-",
                     "-",
                     "-",
-                    "-");
+                    "-"
+            );
         } else if (article instanceof PokemonCard pokemonCard) {
-            System.out.printf("%-15s %-15s %-25s %-12s %-10d %-15s %-15s %-12d %-20s %-15s %-12s %-15s%n",
+            System.out.printf(
+                    "%-15s %-15s %-25s %-12s %-10d %-15s %-15s %-12d %-20s %-15s %-12s %-15s%n",
                     pokemonCard.getArticleType(),
                     pokemonCard.getArticleID(),
                     pokemonCard.getArticleName(),
@@ -408,18 +450,18 @@ public class Main {
                     pokemonCard.getCondition(),
                     pokemonCard.getHoloType(),
                     pokemonCard.getLanguage(),
-                    pokemonCard.isFirstEdition() ? "Ja" : "Nein");
+                    pokemonCard.isFirstEdition() ? "Ja" : "Nein"
+            );
         }
 
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-
+        System.out.println(ARTICLE_TABLE_LINE);
     }
 
     private static void printMovementTable(List<StockMovement> movements) {
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.println(MOVEMENT_TABLE_LINE);
         System.out.printf("%-20s %-15s %-25s %-15s %-10s%n",
                 "Zeitstempel", "Artikelnummer", "Artikelname", "Bewegung", "Menge");
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.println(MOVEMENT_TABLE_LINE);
 
         for (StockMovement movement : movements) {
             System.out.printf("%-20s %-15s %-25s %-15s %-10d%n",
@@ -430,7 +472,7 @@ public class Main {
                     movement.getAmount());
         }
 
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.println(MOVEMENT_TABLE_LINE);
     }
 
     private static String formatTimestamp(java.time.LocalDateTime timestamp) {
@@ -519,5 +561,72 @@ public class Main {
         } catch (IllegalArgumentException e) {
             System.out.println("Fehler in den Historiendaten: " + e.getMessage());
         }
+    }
+
+    private static void savePokemonCardsToDatabase(Inventory inventory, PokemonCardRepository repository) {
+        List<PokemonCard> pokemonCards = inventory.getAllPokemonCards();
+
+        if (pokemonCards.isEmpty()) {
+            System.out.println("Keine PokemonCards im aktuellen Inventory vorhanden.");
+            return;
+        }
+
+        int savedCount = 0;
+
+        for (PokemonCard pokemonCard : pokemonCards) {
+            repository.saveOrUpdate(pokemonCard);
+            savedCount++;
+        }
+
+        System.out.println(savedCount + " PokemonCards wurden in der Datenbank gespeichert.");
+    }
+
+    private static void loadPokemonCardsFromDatabase(Inventory inventory, PokemonCardRepository repository) {
+        List<PokemonCard> dbCards = repository.findAll();
+
+        if (dbCards.isEmpty()) {
+            System.out.println("Keine PokemonCards in der Datenbank vorhanden.");
+            return;
+        }
+
+        int loadedCount = 0;
+        int skippedCount = 0;
+
+        for (PokemonCard pokemonCard : dbCards) {
+            try {
+                inventory.addArticle(pokemonCard);
+                loadedCount++;
+            } catch (IllegalArgumentException e) {
+                skippedCount++;
+            }
+        }
+
+        System.out.println(loadedCount + " PokemonCards wurden aus der Datenbank ins Inventory geladen.");
+        if (skippedCount > 0) {
+            System.out.println(skippedCount + " Karten wurden übersprungen, weil sie bereits im Inventory vorhanden waren.");
+        }
+    }
+
+    private static void showPokemonCardsFromDatabase(PokemonCardRepository repository) {
+        List<PokemonCard> dbCards = repository.findAll();
+
+        if (dbCards.isEmpty()) {
+            System.out.println("Keine PokemonCards in der Datenbank vorhanden.");
+        } else {
+            System.out.println("PokemonCards direkt aus der Datenbank:");
+            printPokemonCardTable(dbCards);
+        }
+    }
+
+    private static void clearPokemonCardsDatabase(Scanner scanner, PokemonCardRepository repository) {
+        boolean confirm = readYesNo(scanner, "Wirklich alle PokemonCards aus der DB löschen? (ja/nein): ");
+
+        if (!confirm) {
+            System.out.println("Löschen abgebrochen.");
+            return;
+        }
+
+        repository.deleteAll();
+        System.out.println("Alle PokemonCards wurden aus der Datenbank gelöscht.");
     }
 }

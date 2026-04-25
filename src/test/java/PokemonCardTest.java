@@ -1,10 +1,8 @@
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PokemonCardTest {
 
@@ -32,7 +30,7 @@ public class PokemonCardTest {
         assertEquals(CardCondition.NEAR_MINT, pokemonCard.getCondition());
         assertEquals(HoloType.HOLO, pokemonCard.getHoloType());
         assertEquals("Deutsch", pokemonCard.getLanguage());
-        assertEquals(true, pokemonCard.isFirstEdition());
+        assertTrue(pokemonCard.isFirstEdition());
     }
 
     @Test

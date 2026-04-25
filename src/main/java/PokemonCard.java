@@ -2,12 +2,12 @@ import java.math.BigDecimal;
 
 public class PokemonCard extends BaseArticle {
 
-    private String setName;
-    private int releaseYear;
-    private CardCondition condition;
-    private HoloType holoType;
-    private String language;
-    private boolean firstEdition;
+    private final String setName;
+    private final int releaseYear;
+    private final CardCondition condition;
+    private final HoloType holoType;
+    private final String language;
+    private final boolean firstEdition;
 
     public PokemonCard(String articleName,
                        String articleID,
