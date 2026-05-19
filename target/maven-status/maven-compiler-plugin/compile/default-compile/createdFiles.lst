@@ -1,0 +1,12 @@
+Article.class
+Main.class
+StockMovement.class
+CardCondition.class
+HoloType.class
+InputHelper.class
+MovementType.class
+DatabaseManager.class
+Inventory.class
+PokemonCard.class
+BaseArticle.class
+PokemonCardRepository.class
